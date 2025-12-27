@@ -57,7 +57,6 @@ export interface ApplicationConfig {
     errorDescription: string;
   };
 }
-
 export const getAdminDiscordIds = () => applicationConfig.adminDiscordIds
 export const getMinimumAge = () => applicationConfig.minimumAge
 export const getFormSections = () => applicationConfig.sections
@@ -70,6 +69,8 @@ export const isAdmin = (discordId: string | undefined): boolean => {
   return !!discordId && applicationConfig.adminDiscordIds.includes(discordId)
 }
 
+const minimumAge = 18;
+
 export const applicationConfig: ApplicationConfig = {
   // Admin Discord IDs - Add your admin Discord user IDs here
   adminDiscordIds: [
@@ -79,7 +80,7 @@ export const applicationConfig: ApplicationConfig = {
   ],
 
   // Minimum age requirement for applications
-  minimumAge: 18,
+  minimumAge: minimumAge,
 
   // Form sections and fields configuration
   sections: [
@@ -102,11 +103,11 @@ export const applicationConfig: ApplicationConfig = {
         {
           name: 'age',
           label: 'Age',
-          placeholder: `${getMinimumAge()}+`,
-          description: `Must be ${getMinimumAge()} or older to apply`,
+          placeholder: `${minimumAge}+`,
+          description: `Must be ${minimumAge} or older to apply`,
           type: 'number',
           required: true,
-          validationMessage: `You must be at least ${getMinimumAge()} years old.`,
+          validationMessage: `You must be at least ${minimumAge} years old.`,
         },
       ],
     },
@@ -168,7 +169,7 @@ export const applicationConfig: ApplicationConfig = {
   ],
 
   messages: {
-    ageRequirement: `You must be at least ${getMinimumAge()} years old.`,
+    ageRequirement: `You must be at least ${minimumAge} years old.`,
     steamIdInvalid: 'Invalid Steam ID. It should be a 17-digit number.',
     cfxUrlInvalid: 'Please enter a valid CFX account URL.',
     experienceMinLength: 'Please provide at least 50 characters about your RP experience.',
