@@ -8,6 +8,7 @@
 5. [Configuration](#configuration)
    - [Environment Variables](#environment-variables)
    - [Discord Bot Setup](#discord-bot-setup)
+   - [Application Configuration](#application-configuration)
    - [Admin Configuration](#admin-configuration)
 6. [Usage](#usage)
    - [Running the Application](#running-the-application)
@@ -19,7 +20,7 @@
 
 ## Introduction
 
-Aura-applications is a free, feature-rich FiveM whitelist system designed to streamline the application process for your server. It integrates seamlessly with Discord, providing a user-friendly interface for applicants and powerful management tools for administrators.
+Aura-applications is a free, FiveM whitelist system designed to streamline the application process for your server. It integrates seamlessly with Discord, providing a user-friendly interface for applicants and powerful management tools for administrators.
 
 ## Features
 
@@ -28,7 +29,6 @@ Aura-applications is a free, feature-rich FiveM whitelist system designed to str
 - Admin panel for application review and management
 - Automated Discord notifications for application status updates
 - Responsive design with dark mode support
-- Robust security measures
 
 ## Prerequisites
 
@@ -77,6 +77,15 @@ DISCORD_BOT_TOKEN=your_discord_bot_token
 
 Replace the placeholder values with your actual credentials.
 
+### Application Configuration
+
+The application uses a centralized configuration file (`src/lib/config.ts`) for easy customization:
+
+- **Admin Discord IDs**: Add admin user IDs to the `adminDiscordIds` array
+- **Form Fields**: Modify questions, validation rules, and field requirements in the `sections` array
+- **UI Text**: Customize form titles, descriptions, and messages in the `ui` object
+- **Validation Rules**: Adjust minimum age, character limits, and error messages
+
 ### Discord Bot Setup
 
 1. Create a new application in the [Discord Developer Portal](https://discord.com/developers/applications).
@@ -87,25 +96,32 @@ Replace the placeholder values with your actual credentials.
    - Message Content Intent
 4. Invite the bot to your server using the OAuth2 URL generator with the following scopes:
    - bot
-   - applications.commands
 5. Ensure the bot has permissions to send messages and read message history.
 
 ### Admin Configuration
 
-To configure admin users, edit the `src/lib/auth.ts` file:
+To configure admin users, edit the `src/lib/config.ts` file:
 
-export const ADMIN_DISCORD_IDS = ['your_discord_id', 'another_admin_id'];
+```typescript
+adminDiscordIds: [
+  'your_discord_id',
+  'another_admin_id'
+]
+```
 
 Replace the array with the Discord IDs of users who should have admin access.
 
 ## Usage
 
-### Running the Application
+### Running the Application In Development
 
-1. Start the development server:
+1. Ensure dependencies are installed (if not already done):
+   npm install
+
+2. Start the development server:
    npm run dev
 
-2. Access the application at `http://localhost:3000`.
+3. Access the application at `http://localhost:3000`.
 
 ### Accessing the Admin Panel
 
@@ -115,8 +131,10 @@ Replace the array with the Discord IDs of users who should have admin access.
 ## Customization
 
 - **Logo**: Replace `/public/logo.png` with your own logo.
-- **Colors**: Modify the Tailwind configuration in `tailwind.config.js`.
-- **Application Fields**: Edit the form schema in `src/components/whitelist-form.tsx`.
+- **Colors**: Modify the Tailwind configuration in `tailwind.config.ts`.
+- **Application Fields**: Edit the form configuration in `src/lib/config.ts` to modify questions, validation rules, and field requirements.
+- **Admin Permissions**: Add or remove admin Discord IDs in `src/lib/config.ts`.
+- **UI Text**: Customize form titles, descriptions, and messages in `src/lib/config.ts`.
 
 ## Limitations
 
@@ -128,12 +146,12 @@ Replace the array with the Discord IDs of users who should have admin access.
 
 - **Discord authentication issues**: Ensure your Discord application credentials are correct and the redirect URI is properly set in the Discord Developer Portal.
 - **Bot not responding**: Check that the bot token is correct and the bot has the necessary permissions in your Discord server.
-- **Admin access not working**: Verify that the correct Discord IDs are set in the `ADMIN_DISCORD_IDS` array.
+- **Admin access not working**: Verify that the correct Discord IDs are set in the `adminDiscordIds` array in `src/lib/config.ts`.
 - **Build errors**: If you encounter build errors, make sure you have correctly installed the Visual Studio Code Build Tools as described in the Prerequisites section.
 
 ## Support
 
-For issues, feature requests, or general inquiries, please open an issue on the GitHub repository or contact us through our Discord support server.
+For issues, feature requests, or general inquiries, please open an issue on the GitHub repository or contact us through our [Discord support server](https://discord.gg/663eBMPWPB).
 
 ---
 
