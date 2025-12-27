@@ -1,22 +1,30 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from "next-auth/react"
+import type { Session } from "next-auth"
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import confetti from 'canvas-confetti'
+import { isAdmin } from '@/lib/auth'
 
 type DiscordUser = {
   id: string
   username: string
   discriminator: string
   avatar: string
+  banner: string
+  accentColor: number | null
   verified: boolean
   email: string
   createdAt: string
+}
+
+interface ExtendedSession extends Session {
+  discord: DiscordUser
 }
 
 type Application = {
@@ -38,11 +46,7 @@ export default function AdminApplications() {
   const [reason, setReason] = useState('')
   const { toast } = useToast()
 
-  useEffect(() => {
-    fetchApplications()
-  }, [])
-
-  async function fetchApplications() {
+  const fetchApplications = useCallback(async () => {
     try {
       const response = await fetch('/api/applications')
       if (response.ok) {
@@ -59,9 +63,13 @@ export default function AdminApplications() {
         variant: 'destructive',
       })
     }
-  }
+  }, [toast])
 
-  async function handleStatusUpdate(applicationId: string, newStatus: 'approved' | 'denied') {
+  useEffect(() => {
+    fetchApplications()
+  }, [fetchApplications])
+
+  const handleStatusUpdate = async (applicationId: string, newStatus: 'approved' | 'denied') => {
     try {
       const response = await fetch(`/api/applications/${applicationId}`, {
         method: 'PATCH',
@@ -82,10 +90,9 @@ export default function AdminApplications() {
         title: 'Status Updated',
         description: data.message || `Application ${newStatus} successfully and archived.`,
       })
-      fetchApplications() // Refresh the list
-      setReason('') // Clear the reason input
+      fetchApplications()
+      setReason('')
 
-      // Trigger confetti or X's
       if (newStatus === 'approved') {
         confetti({
           particleCount: 100,
@@ -93,28 +100,34 @@ export default function AdminApplications() {
           origin: { y: 0.6 }
         })
       } else {
-        // Create X's effect
-        const xCount = 20
-        const xSize = 30
-        for (let i = 0; i < xCount; i++) {
-          const x = document.createElement('div')
-          x.textContent = '❌'
-          x.style.position = 'fixed'
-          x.style.left = `${Math.random() * 100}vw`
-          x.style.top = `${Math.random() * 100}vh`
-          x.style.fontSize = `${xSize}px`
-          x.style.opacity = '0'
-          x.style.transition = 'opacity 1s, transform 1s'
-          document.body.appendChild(x)
-          setTimeout(() => {
-            x.style.opacity = '1'
-            x.style.transform = 'translateY(-50px) rotate(360deg)'
-          }, 50)
-          setTimeout(() => {
-            x.style.opacity = '0'
-            setTimeout(() => x.remove(), 1000)
-          }, 2000)
-        }
+        const pulseEffect = document.createElement('div')
+        pulseEffect.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(239, 68, 68, 0.3) 0%, transparent 70%);
+          pointer-events: none;
+          z-index: 9999;
+          animation: pulse-fade 1s ease-out;
+        `
+        const style = document.createElement('style')
+        style.textContent = `
+          @keyframes pulse-fade {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+          }
+        `
+        document.head.appendChild(style)
+        document.body.appendChild(pulseEffect)
+        setTimeout(() => {
+          document.body.removeChild(pulseEffect)
+          document.head.removeChild(style)
+        }, 1000)
       }
     } catch (error) {
       console.error('Error updating application status:', error)
@@ -126,13 +139,13 @@ export default function AdminApplications() {
     }
   }
 
-  if (!session?.discord) {
+  if (!(session as ExtendedSession)?.discord) {
     return <div>Access denied. Please log in as an admin.</div>
   }
 
-  const isAdmin = session.discord.id === '770344107104010261'
+  const isAdminUser = isAdmin((session as ExtendedSession).discord.id)
 
-  if (!isAdmin) {
+  if (!isAdminUser) {
     return <div>Access denied. You do not have admin privileges.</div>
   }
 
